@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 安卓原生工程说明 & 配置片段
+
+Capacitor 会自动生成 android/ 工程。下面是需要手动关注的关键配置：
+
+1. 网络权限（android/app/src/main/AndroidManifest.xml 需包含）：
+   <uses-permission android:name="android.permission.INTERNET" />
+   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+2. 允许明文 HTTP（访问本地模型 / 自建中继时需要）：
+   <application
+       android:usesCleartextTraffic="true"
+       ... >
+   </application>
+
+3. 本地模型端点示例（在 App 模型配置里填写）：
+   - Ollama:  http://10.0.2.2:11434/v1   （模拟器访问宿主，真机填局域网 IP）
+   - llama.cpp server: http://192.168.x.x:8080/v1
+
+生成安卓工程后，将本文件内的权限/配置合并到 AndroidManifest.xml 即可。
+-->
+<config>
+  <permissions>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  </permissions>
+  <application android:usesCleartextTraffic="true" />
+</config>
