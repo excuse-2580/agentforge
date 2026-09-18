@@ -1,0 +1,13 @@
+{
+  "name": "agentforge-qq-relay",
+  "version": "1.0.0",
+  "description": "AgentForge 的 QQ 接入中继（OneBot v11）",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}
