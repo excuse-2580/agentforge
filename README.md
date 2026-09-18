@@ -27,6 +27,24 @@
 | 数据存储 | localStorage（Web）/ SharedPreferences（App） |
 | 备份 | 导出 / 导入 JSON，一键清空 |
 
+## 🎨 Material Design 3 界面
+
+本应用采用 **Material You（Material Design 3）** 设计规范重构，提供现代化的安卓原生质感：
+
+- **语义色槽**：`--md-sys-*` 色槽系统，深色 / 浅色主题无缝切换，符合 M3 色彩对比度标准
+- **形状系统**：四级圆角（4 / 8 / 12 / 16 / 28dp），层级越高圆角越大
+- **组件库**：FAB、Top App Bar（Large 变体）、Segmented Tabs、Filled/Tonal/Outlined/Text/Elevated 按钮、
+  Switch、Slider、Snackbar、Alert/Confirm 对话框、Bottom Sheet、Menu、Card（filled/elevated/outlined）
+- **Material Symbols**：采用 Google Material Symbols（Outlined）图标，矢量清晰
+- **动效**：遵循 M3 运动曲线（`cubic-bezier(0.2, 0, 0, 1)`），含页面切换、涟漪、打字指示器等
+
+![Material Design 3 设计预览](design_preview.png)
+
+> 左：智能体列表（Large App Bar + FAB + 卡片网格）｜ 中：聊天页（Material 气泡 + Composer）｜
+> 右：编辑器（Tabs + Switch + Slider + 危险区）
+
+---
+
 ## 🚀 快速开始
 
 ### 网页 / PWA 版（已部署 ✅）
@@ -106,10 +124,11 @@ App 通过 **OpenAI 兼容端点** 对接本地模型：
 
 ```
 agentforge/
-├── index.html              # 入口
-├── css/style.css           # 样式（暗色/亮色主题）
+├── index.html              # 入口（引入 Material Symbols 字体）
+├── css/style.css           # Material Design 3 样式（深色/浅色双主题 + 全部组件）
 ├── js/
 │   ├── app.js              # 主逻辑、路由、状态管理
+│   ├── ui.js               # M3 组件库（Snackbar/Dialog/Sheet/Menu/Switch/Slider/FAB…）
 │   ├── storage.js          # 数据持久化（localStorage）
 │   ├── llm.js              # 模型调用（OpenAI 兼容 / 流式 SSE）
 │   └── qq.js               # QQ 中继客户端
@@ -120,6 +139,8 @@ agentforge/
 ├── assets/                 # 图标（icon.svg / .png）
 ├── qq-relay/               # QQ 接入中继服务（Node.js / OneBot）
 ├── .github/workflows/      # 自动构建 APK & 部署 Pages
+├── _md_verify.js           # 无头 DOM 渲染验证（jsdom）
+├── _design_preview.py      # Material Design 设计预览图生成
 └── README.md
 ```
 

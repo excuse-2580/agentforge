@@ -1,0 +1,8 @@
+node_modules/
+android/
+.idea/
+*.iml
+.DS_Store
+*.log
+.env
+.env.local

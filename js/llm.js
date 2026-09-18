@@ -148,3 +148,6 @@ const LLM = (() => {
 
   return { PRESETS, getPreset, chat, chatStream, testConnection };
 })();
+
+// 显式挂载到 window，兼容 jsdom / 严格环境
+if (typeof window !== 'undefined') window.LLM = LLM;

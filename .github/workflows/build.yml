@@ -2,13 +2,40 @@ name: Build APK & Deploy Pages
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
+env:
+  JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
+  ANDROID_HOME: ${{ github.workspace }}/android-sdk
+  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+  ANDROID_NDK_HOME: ${{ github.workspace }}/android-sdk/ndk/26.1.10909125
+  PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${{ env.PATH }}
+
 jobs:
-  # 构建安卓 APK
-  build-android:
+  # ================== 渲染验证（Material Design 回归检测）==================
+  verify:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install jsdom
+        run: npm install --no-audit --no-fund jsdom
+      - name: 运行渲染验证（各页面 + 端到端交互）
+        run: node _md_verify.js
+
+  # ================== 构建安卓 APK ==================
+  build-android:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read   # 仅读取仓库
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read   # 仅读取仓库
     steps:
       - uses: actions/checkout@v4
 
@@ -17,30 +44,67 @@ jobs:
         with:
           node-version: 20
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
+      # 手动安装 Android SDK command-line tools（避开第三方 action 的权限坑）
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          set -e
+          SDK=${{ env.ANDROID_HOME }}
+          mkdir -p "$SDK/cmdline-tools"
+          echo "下载 command-line tools ..."
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdtools.zip
+          unzip -q /tmp/cmdtools.zip -d "$SDK/cmdline-tools"
+          mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
+          # 接受所有授权
+          yes | sdkmanager --sdk_root="$SDK" --licenses >/dev/null 2>&1 || true
+          # 安装构建所需组件
+          sdkmanager --sdk_root="$SDK" \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "ndk;26.1.10909125" \
+            "cmdline-tools;latest"
+          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
+          echo "PATH=$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:$PATH" >> $GITHUB_ENV
+          adb --version || true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
 
       - name: Install deps & sync Capacitor
         run: |
+          set -e
           npm install
-          npx cap add android || true
+          # 若 android 平台未生成则创建
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
           npx cap sync android
 
       - name: Build APK (debug)
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: |
+          set -e
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: agentforge-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 
       - name: Create Release (on tag)
         if: startsWith(github.ref, 'refs/tags/')
@@ -50,22 +114,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # 部署 GitHub Pages（网页 / PWA 版）
+  # ================== 部署 GitHub Pages（PWA 网页版）==================
   deploy-pages:
     needs: build-android
     runs-on: ubuntu-latest
     permissions:
       pages: write
       id-token: write
+      contents: read
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'   # 仓库根即 web 资源
+          path: '.'   # 仓库根即 web 资源（index.html 等）
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

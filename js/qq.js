@@ -48,3 +48,6 @@ const QQ = (() => {
 
   return { sendMessage, testRelay };
 })();
+
+// 显式挂载到 window，兼容 jsdom / 严格环境
+if (typeof window !== 'undefined') window.QQ = QQ;
