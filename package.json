@@ -1,0 +1,17 @@
+{
+  "name": "agentforge",
+  "version": "1.0.0",
+  "description": "智能体管家 · AgentForge - AI 智能体管理软件，支持本地模型与 QQ 接入",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Web 资源即为最终产物，无需打包。如需压缩可在此接入 vite/webpack。'",
+    "sync": "cap sync",
+    "open:android": "cap open android",
+    "gen:icons": "python3 assets/gen.py"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/android": "^6.1.0"
+  }
+}
