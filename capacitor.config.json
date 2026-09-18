@@ -1,0 +1,18 @@
+{
+  "appId": "tv.fursuit.agentforge",
+  "appName": "智能体管家 · AgentForge",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
