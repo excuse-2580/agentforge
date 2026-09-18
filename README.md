@@ -27,31 +27,50 @@
 | 数据存储 | localStorage（Web）/ SharedPreferences（App） |
 | 备份 | 导出 / 导入 JSON，一键清空 |
 
-## 🚀 快速开始（网页版）
+## 🚀 快速开始
+
+### 网页 / PWA 版（已部署 ✅）
+
+直接访问：**https://excuse-2580.github.io/agentforge/**
+
+> 在手机浏览器打开 → 点「安装」或 Safari「添加到主屏幕」，即可当作原生 App 使用。
+
+源码仓库：**https://github.com/excuse-2580/agentforge**
+
+### 本地运行
 
 ```bash
-git clone https://github.com/<你的用户名>/agentforge.git
+git clone https://github.com/excuse-2580/agentforge.git
 cd agentforge
-# 直接用浏览器打开 index.html，或：
 python3 -m http.server 8080
 # 访问 http://localhost:8080
 ```
 
 ## 📱 打包安卓 APK
 
+有两种方式：
+
+### 方式一：GitHub Actions 自动构建（推荐）
+
+push 到 `main` 分支后，Actions 会自动构建 APK 并部署 Pages；打 Tag 还会发布 Release。
+> ⚠️ 若使用 fine-grained 个人令牌，需在 GitHub 仓库 Settings → Actions 中确认 `GITHUB_TOKEN`
+> 具有 **Contents: read-write**、**Pages: read-write** 权限。
+
+### 方式二：本地构建
+
 ```bash
 cd agentforge
 npm install
-npm run build          # 构建 web 资源到 dist/
-npx cap add android    # 首次添加安卓平台（已生成好可直接 sync）
+npx cap add android    # 首次添加安卓平台
 npx cap sync
 npx cap open android   # 用 Android Studio 打开，点 Run 即可生成 APK
-# 或命令行打包：
+# 或命令行：
 cd android && ./gradlew assembleDebug
 # 输出：android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-> 前置：Node.js ≥ 18，JDK 17，Android SDK。也可用 GitHub Actions 自动构建。
+> 前置：Node.js ≥ 18，JDK 17，Android SDK。
+> 安卓权限（`AndroidManifest.xml`）见 `android-config.xml`：需 `INTERNET` 与 `usesCleartextTraffic="true"`（访问本地模型 / 自建中继需要）。
 
 ## 🔌 QQ 接入说明
 
@@ -59,7 +78,7 @@ QQ 接入需要一个运行中的「中继服务」把消息转给 QQ 机器人�
 
 仓库内 `qq-relay/` 提供了一个开箱即用的 Node 中继示例：
 
-1. 在一台服务器（或本机）启动 go-cqhttp，开启 WebSocket / HTTP 上报
+1. 在一台服务器（或本机）启动 go-cqhttp，开启 HTTP API（默认 `:5700`）
 2. 启动 `qq-relay/index.js`，它会：
    - 接收来自本 App 的智能体回复请求
    - 通过 OneBot 把消息发到指定 QQ 群 / 好友
@@ -75,8 +94,13 @@ QQ 用户 → QQ 机器人(go-cqhttp) → qq-relay → AgentForge App
 App 通过 **OpenAI 兼容端点** 对接本地模型：
 
 - **Ollama**：默认 `http://localhost:11434/v1`，模型如 `llama3.2:3b`
+  - 安卓模拟器访问宿主：`http://10.0.2.2:11434/v1`
+  - 真机：填电脑局域网 IP，如 `http://192.168.1.100:11434/v1`
 - **llama.cpp server**：`--host 0.0.0.0 --port 8080`，端点 `/v1`
-- 手机端跑本地模型：可用 [MLC LLM](https://llc.ai) / [ollama-android](https://github.com/ollama/ollama) 等，把端点填进 App 即可
+- 手机端跑本地模型：可用 [MLC LLM](https://llc.ai) 等，把端点填进 App 即可
+
+> 首次进入 App 会自动创建示例智能体「小夜」，默认指向本地 Ollama，
+> 你只需把 API 地址 / Key / 模型名改成自己可用的即可。
 
 ## 📂 项目结构
 
@@ -84,17 +108,17 @@ App 通过 **OpenAI 兼容端点** 对接本地模型：
 agentforge/
 ├── index.html              # 入口
 ├── css/style.css           # 样式（暗色/亮色主题）
-├── js/app.js               # 主逻辑、路由、状态管理
-├── js/storage.js           # 数据持久化（localStorage）
-├── js/llm.js               # 模型调用（OpenAI 兼容 / 流式）
-├── js/qq.js                # QQ 中继客户端
+├── js/
+│   ├── app.js              # 主逻辑、路由、状态管理
+│   ├── storage.js          # 数据持久化（localStorage）
+│   ├── llm.js              # 模型调用（OpenAI 兼容 / 流式 SSE）
+│   └── qq.js               # QQ 中继客户端
 ├── manifest.webmanifest     # PWA 配置
 ├── sw.js                   # Service Worker（离线缓存）
 ├── capacitor.config.json   # Capacitor 安卓配置
-├── android/                # 安卓原生工程（cap sync 生成）
-├── qq-relay/               # QQ 接入中继服务
-│   ├── index.js
-│   └── package.json
+├── android-config.xml      # 安卓权限/配置说明
+├── assets/                 # 图标（icon.svg / .png）
+├── qq-relay/               # QQ 接入中继服务（Node.js / OneBot）
 ├── .github/workflows/      # 自动构建 APK & 部署 Pages
 └── README.md
 ```
@@ -107,4 +131,4 @@ agentforge/
 
 ## 📜 开源协议
 
-MIT License
+MIT License — 随便改，随便用 🐾
