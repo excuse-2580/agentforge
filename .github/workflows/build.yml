@@ -1,4 +1,4 @@
-name: Build APK & Deploy Pages
+name: Verify & Build APK
 
 on:
   push:
@@ -30,9 +30,6 @@ jobs:
   # ================== 构建安卓 APK ==================
   build-android:
     needs: verify
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read   # 仅读取仓库
     runs-on: ubuntu-latest
     permissions:
       contents: read   # 仅读取仓库
@@ -115,24 +112,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ================== 部署 GitHub Pages（PWA 网页版）==================
+  # Pages 使用仓库 main 分支根目录（legacy 模式），push 即自动部署，
+  # 无需额外的 deploy-pages job（避免 id-token/pages 写权限要求）。
   deploy-pages:
-    needs: build-android
+    needs: verify
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-      contents: read
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'   # 仓库根即 web 资源（index.html 等）
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: 提示 Pages 部署方式
+        run: |
+          echo "Pages 已配置为 legacy 模式（source: main /），"
+          echo "push 到 main 后 GitHub 会自动构建部署，无需本 job 额外操作。"
+          echo "若需强制重建，可在仓库 Settings → Pages 点击 Rebuild。"
